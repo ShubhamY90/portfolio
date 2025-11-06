@@ -24,7 +24,7 @@ const adjust = (value, fromMin, fromMax, toMin, toMax) =>
 const easeInOutCubic = x => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
 
 const ProfileCardComponent = ({
-  avatarUrl = '#',
+  avatarUrl = 'profile.jpeg',
   iconUrl = '<Placeholder for icon URL>',
   grainUrl = '/grain-texture.png',
   behindGradient,
@@ -245,7 +245,13 @@ const ProfileCardComponent = ({
   );
 
   const handleContactClick = useCallback(() => {
-    onContactClick?.();
+    const contactSection = document.getElementById('contact');
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      // fallback if section not found
+      onContactClick?.();
+    }
   }, [onContactClick]);
 
   return (

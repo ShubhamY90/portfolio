@@ -269,7 +269,7 @@ export default function HomePage() {
             <ProfileCard
               name="Shubham Yadav"
               title="Full-Stack Developer"
-              handle="@shubhamyadav"
+              handle="shubhamyadav"
               status="Online"
               contactText="Contact Me"
               showUserInfo={true}
@@ -452,13 +452,13 @@ export default function HomePage() {
           Let’s collaborate or just have a friendly chat! I’m always open to new opportunities and ideas.
         </p>
         <div className="flex justify-center space-x-10 text-blue-300">
-          <a href="mailto:shubham@example.com" className="hover:text-white transition">
+          <a href="mailto:anshu.yadav5709@gmail.com" className="hover:text-white transition">
             <Mail size={30} />
           </a>
-          <a href="https://github.com/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">
+          <a href="https://github.com/ShubhamY90" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">
             <Github size={30} />
           </a>
-          <a href="https://linkedin.com/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">
+          <a href="https://www.linkedin.com/in/shubham-yadav-734008284/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">
             <Linkedin size={30} />
           </a>
         </div>
