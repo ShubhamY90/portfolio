@@ -10,14 +10,8 @@ import CircularText from "../components/CircularText";
 import PillNav from "../components/PillNav";
 import GooeyNav from "../components/GooeyNav";
 import Threads from "../components/Threads";
-import { useState, useEffect, useMemo, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 
-// Lazy load heavy components
-const LazyDomeGallery = lazy(() => import("../components/DomeGallery"));
-const LazyCircularGallery = lazy(() => import("../components/CircularGallery"));
-const LazyThreads = lazy(() => import("../components/Threads"));
-
-// Images data (moved useMemo inside component)
 const images = [
   // 🌐 Core Web
   { src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg", alt: "HTML5" },
@@ -64,128 +58,128 @@ const images = [
   { src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original-wordmark.svg", alt: "GitHub Wordmark" },
 ];
 
-// Projects data
 const projects = [
   {
-    name: "MindWell (Web Project)",
-    image: "/mindWell.png",
+    name: "MindWell",
+    image: "mindWell.png",
     link: "https://mindwellforsih.netlify.app/",
     github: "https://github.com/ShubhamY90/MindWell",
     type: "Collaborative Project",
     tech: ["React", "Node.js", "Express", "Firebase", "Tailwind", "Gemini AI"],
-    description: `
-      Building an AI-native mental health SaaS platform with multi-user access for personalized emotional support.
-      Integrated Gemini AI chatbot for conversational search, mood tracking, and context-aware content recommendations.
-      Designed a responsive UI using React.js & Tailwind, focusing on UX experimentation, accessibility, and UI polish.
-      Implemented structured data storage, metadata tracking, and secure authentication using Firebase.
-      Optimized real-time interactions for chat and activity logs, ensuring performance and scalable SaaS-ready architecture.
-      Currently exploring AI-driven recommendations, subscription models, and rapid prototyping for premium features.
-    `,
+    description: `Building an AI-native mental health SaaS platform with multi-user access for personalized emotional support. Integrated Gemini AI chatbot for conversational search, mood tracking, and context-aware content recommendations. Designed a responsive UI using React.js & Tailwind, focusing on UX experimentation, accessibility, and UI polish.`,
   },
   {
-    name: "Hackathon Teammate Finder (Web Project)",
-    image: "/htmf.png",
+    name: "HTMF",
+    image: "htmf.png",
     link: "https://htmf.vercel.app/",
     github: "https://github.com/ShubhamY90/HTMF",
     type: "Personal Project",
     tech: ["React", "Node.js", "Express", "Firebase"],
-    description: `
-      Created comprehensive Software Design Document following software engineering best practices.
-      Built full-stack application enabling hackathon management, team formation, and skill-based teammate matching.
-      Implemented secure RESTful APIs with Firebase Authentication and optimized database schema design.
-      Deployed production-ready application on Vercel with zero-downtime continuous delivery.
-      Currently developing AI-powered hackathon recommendations and real-time team chat features.
-    `,
+    description: `Created comprehensive Software Design Document following software engineering best practices. Built full-stack application enabling hackathon management, team formation, and skill-based teammate matching. Implemented secure RESTful APIs with Firebase Authentication and optimized database schema design.`,
   },
   {
-    name: "Mini Game Arcade (Web Project)",
-    image: "/miniGameArcade.png",
+    name: "Mini Game Arcade",
+    image: "miniGameArcade.png",
     link: "https://game-arcade-wine.vercel.app/",
     github: "https://github.com/yourusername/mini-game-arcade",
     type: "Personal Project",
     tech: ["React", "Tailwind", "Framer Motion"],
-    description: `
-      Developed a fun, interactive mini-game hub featuring modern animations and dynamic game selection.
-      Focused on accessibility, performance, and responsive design using React and Tailwind CSS.
-      Integrated local data storage for player stats and leaderboard functionality.
-    `,
+    description: `Developed a fun, interactive mini-game hub featuring modern animations and dynamic game selection. Focused on accessibility, performance, and responsive design using React and Tailwind CSS. Integrated local data storage for player stats and leaderboard functionality.`,
   },
   {
-    name: "Prostate Cancer Detection (ML Project)",
-    image: "/mindWell.png",
+    name: "Prostate Cancer Detection",
+    image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&h=600&fit=crop&auto=format",
     link: "https://prostate-cancer-detection.link",
     github: "https://github.com/yourusername/prostate-cancer-detection",
     type: "Machine Learning Project",
     tech: ["Python", "TensorFlow", "NumPy", "Pandas"],
-    description: `
-      Developed a deep learning model for early prostate cancer detection using histopathological image data.
-      Implemented CNN-based feature extraction and binary classification.
-      Preprocessed and augmented dataset to enhance accuracy and generalization.
-      Achieved strong diagnostic precision and explored explainability via Grad-CAM visualization.
-    `,
+    description: `Developed a deep learning model for early prostate cancer detection using histopathological image data. Implemented CNN-based feature extraction and binary classification. Preprocessed and augmented dataset to enhance accuracy and generalization.`,
   },
   {
-    name: "Food Detection using YOLOv8 (ML Project)",
-    image: "/htmf.png",
+    name: "Food Detection Model",
+    image: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&h=600&fit=crop&auto=format",
     link: "https://food-detection.link",
     github: "https://github.com/yourusername/food-detection-yolov8",
     type: "Machine Learning Project",
     tech: ["Python", "YOLOv8", "OpenCV", "PyTorch"],
-    description: `
-      Built an Indian Food Detection system using YOLOv8 trained on a custom Indian food dataset.
-      Enabled real-time object detection and calorie estimation.
-      Implemented image preprocessing pipelines and model optimization for edge deployment.
-      Designed demo interface for food recognition and label visualization.
-    `,
+    description: `Built an Indian Food Detection system using YOLOv8 trained on a custom Indian food dataset. Enabled real-time object detection and calorie estimation. Implemented image preprocessing pipelines and model optimization for edge deployment.`,
   },
 ];
 
 const sections = ["home", "about", "projects", "skills", "contact"];
 
-// Fade-in animation variants
-const fadeInVariants = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 }
-};
-
-const containerVariants = {
-  initial: { opacity: 0 },
-  animate: { 
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      duration: 0.6
-    }
-  }
-};
-
-// Loading fallback component
-const LoadingFallback = () => (
-  <div className="flex items-center justify-center h-64">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-300"></div>
-  </div>
-);
+// Shuffle images once and memoize
+const shuffledImages = [...images].sort(() => Math.random() - 0.5);
 
 export default function HomePage() {
   const [selected, setSelected] = useState(null);
   const [activeSection, setActiveSection] = useState(sections[0]);
-  const [isLoading, setIsLoading] = useState(true);
-  const isDesktop = typeof window !== "undefined" ? window.innerWidth > 768 : true;
+  const [projectsInView, setProjectsInView] = useState(false);
+  const [skillsInView, setSkillsInView] = useState(false);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [galleryKey, setGalleryKey] = useState(0); // Force re-render
+  
+  const projectsRef = useRef(null);
+  const skillsRef = useRef(null);
 
-  // Memoized shuffled images - now inside component
-  const shuffledImages = useMemo(() => {
-    const shuffled = [...images];
-    shuffled.sort(() => Math.random() - 0.5);
-    return shuffled;
+
+  // Preload project images with better error handling
+  useEffect(() => {
+    let cancelled = false;
+  
+    const loadAndDecode = (url, name) =>
+      new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = url;
+        img.onload = async () => {
+          try {
+            // wait for browser decode
+            await img.decode();
+            console.log(`✅ Decoded ${name}`);
+          } catch {
+            console.warn(`⚠️ Decode skipped for ${name}`);
+          }
+          resolve();
+        };
+        img.onerror = () => {
+          console.error(`❌ Failed to load ${name}`);
+          resolve();
+        };
+      });
+  
+    async function preload() {
+      console.log("🚀 Starting guaranteed image preload...");
+      const start = performance.now();
+  
+      await Promise.all(projects.map((p) => loadAndDecode(p.image, p.name)));
+  
+      // Force a full browser paint + GPU sync before render
+      await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 100)));
+  
+      if (!cancelled) {
+        console.log(`✨ All project images ready in ${(performance.now() - start).toFixed(0)}ms`);
+        setImagesLoaded(true);
+        setGalleryKey((k) => k + 1);
+      }
+    }
+  
+    preload();
+  
+    return () => {
+      cancelled = true;
+    };
   }, []);
+  
+  
+  
 
-  const scrollToSection = (id) => {
+  const scrollToSection = useCallback((id) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: "smooth" });
-  };
+  }, []);
 
-  // Track scroll position to highlight active section
+  // Track active section
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -195,7 +189,7 @@ export default function HomePage() {
           }
         }
       },
-      { threshold: 0.5 }
+      { threshold: 0.3, rootMargin: "-100px 0px" }
     );
 
     sections.forEach((id) => {
@@ -206,32 +200,56 @@ export default function HomePage() {
     return () => observer.disconnect();
   }, []);
 
-  // Simulate initial load
+  // Lazy load heavy components
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 500);
-    return () => clearTimeout(timer);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.target.id === "projects" && entry.isIntersecting) {
+            console.log("🎯 Projects section in view");
+            setProjectsInView(true);
+          }
+          if (entry.target.id === "skills" && entry.isIntersecting) {
+            console.log("🎯 Skills section in view");
+            setSkillsInView(true);
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: "200px" }
+    );
+
+    if (projectsRef.current) observer.observe(projectsRef.current);
+    if (skillsRef.current) observer.observe(skillsRef.current);
+
+    return () => observer.disconnect();
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-pulse text-blue-300 text-xl">Loading...</div>
-      </div>
-    );
-  }
+  // Memoize project items for CircularGallery
+  const projectItems = useMemo(
+    () => {
+      const items = projects.map((p) => ({ image: p.image, text: p.name }));
+      console.log("🔄 Project items memoized:");
+      items.forEach((item, i) => {
+        console.log(`  ${i + 1}. text: "${item.text}", image: "${item.image}"`);
+      });
+      return items;
+    },
+    []
+  );
+
+  const handleProjectSelect = useCallback((item) => {
+    console.log("🖱️ Project selected:", item);
+    const found = projects.find((p) => p.name === item.text);
+    console.log("📦 Found project data:", found);
+    setSelected(found);
+  }, []);
+
+  const closeModal = useCallback(() => setSelected(null), []);
 
   return (
-    <motion.div
-      initial="initial"
-      animate="animate"
-      variants={containerVariants}
-      className="bg-black relative min-h-screen font-sans text-white w-full overflow-x-hidden"
-    >
+    <div className="bg-black relative min-h-screen font-sans text-white w-full overflow-x-hidden">
       {/* 🧭 Transparent Floating Header */}
-      <motion.header
-        variants={fadeInVariants}
-        className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999] bg-black/30 backdrop-blur-md border border-white/10 px-8 py-3 rounded-full shadow-lg flex items-center space-x-10"
-      >
+      <header className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999] bg-black/30 backdrop-blur-md border border-white/10 px-8 py-3 rounded-full shadow-lg flex items-center space-x-10">
         {sections.map((id) => (
           <button
             key={id}
@@ -245,14 +263,12 @@ export default function HomePage() {
             {id.charAt(0).toUpperCase() + id.slice(1)}
           </button>
         ))}
-      </motion.header>
+      </header>
 
       {/* 🌟 Hero Section */}
-      <motion.section 
+      <section 
         id="home"
-        variants={fadeInVariants}
-        className="relative min-h-screen flex flex-col justify-center items-center text-center space-y-6 px-6 bg-black/40 backdrop-blur-sm overflow-hidden"
-      >
+        className="relative min-h-screen flex flex-col justify-center items-center text-center space-y-6 px-6 bg-black/40 backdrop-blur-sm overflow-hidden">
         <div className="absolute inset-0 -z-10">
           <Silk
             speed={5}
@@ -264,34 +280,40 @@ export default function HomePage() {
         </div>
 
         <motion.h1
-          variants={fadeInVariants}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
           className="text-5xl md:text-6xl font-bold text-white drop-shadow-[0_0_10px_#3b82f6]"
         >
           Hi, I'm Shubham Yadav
         </motion.h1>
 
         <motion.p
-          variants={fadeInVariants}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 1 }}
           className="text-lg md:text-xl text-gray-300 max-w-2xl leading-relaxed"
         >
           Full-Stack Developer passionate about building immersive, high-performance digital experiences.
         </motion.p>
 
-        <motion.div variants={fadeInVariants}>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1, duration: 1 }}
+        >
           <Button className="bg-blue-300 text-black hover:bg-blue-400 font-semibold px-8 py-3 rounded-full mt-6 shadow-[0_0_15px_#3b82f6]">
             View My Work
           </Button>
         </motion.div>
-      </motion.section>
+      </section>
 
       {/* 👤 About Section */}
-      <motion.section
+      <section
         id="about"
-        variants={fadeInVariants}
         className="py-24 px-6 md:px-20 bg-black/40 backdrop-blur-sm flex justify-center items-center"
       >
         <div className="flex flex-col md:flex-row items-center md:items-start justify-between w-full max-w-6xl gap-12">
-          {/* Left - Profile Card */}
           <div className="flex-shrink-0 w-full md:w-1/2 flex justify-center md:justify-start">
             <ProfileCard
               name="Shubham Yadav"
@@ -309,7 +331,6 @@ export default function HomePage() {
             />
           </div>
 
-          {/* Right - About Text */}
           <div className="w-full md:w-1/2 text-center md:text-left space-y-4">
             <h2 className="text-3xl font-bold text-white">About Me</h2>
             <p className="text-gray-300 leading-relaxed">
@@ -326,13 +347,13 @@ export default function HomePage() {
             </p>
           </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* 💻 Projects Section */}
-      <motion.section
+      <section
+        ref={projectsRef}
         id="projects"
-        variants={fadeInVariants}
-        className="relative py-24 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center overflow-x-hidden"
+        className="relative py-24 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center overflow-x-hidden min-h-screen"
       >
         <h2 className="text-3xl md:text-4xl font-bold text-blue-300 mb-12 text-center drop-shadow-[0_0_10px_#3b82f6]">
           Featured Projects
@@ -340,22 +361,77 @@ export default function HomePage() {
 
         <div className="relative w-full flex justify-center items-center px-6 md:px-20">
           <div className="relative w-full max-w-[1200px] h-[600px] md:h-[70vh] flex justify-center items-center overflow-hidden">
-            <Suspense fallback={<LoadingFallback />}>
-              <LazyCircularGallery
-                items={projects.map((p) => ({
-                  image: p.image,
-                  text: p.name,
-                }))}
-                bend={3}
-                textColor="#93c5fd"
-                borderRadius={0.05}
-                scrollEase={0.02}
-                onSelect={(item) => {
-                  const found = projects.find((p) => p.name === item.text);
-                  setSelected(found);
-                }}
-              />
-            </Suspense>
+            {(() => {
+              console.log("🎨 Render check - projectsInView:", projectsInView, "imagesLoaded:", imagesLoaded, "galleryKey:", galleryKey);
+              
+              if (!projectsInView) {
+                return <div className="text-gray-400">Scroll to load projects...</div>;
+              }
+              
+              if (!imagesLoaded) {
+                return (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="absolute inset-0 bg-black/40 flex items-center justify-center"
+                  >
+                    <div className="h-12 w-12 border-b-2 border-blue-300 rounded-full animate-spin" />
+                  </motion.div>
+                );
+              }
+              
+              return (
+                <motion.div
+                  key={galleryKey}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 1 }}
+                  className="w-full h-full flex justify-center items-center"
+                >
+                  <CircularGallery 
+                    items={projects} // Pass your projects array here
+                    bend={3}
+                    textColor="#ffffff"
+                    borderRadius={0.05}
+                    font="bold 30px Figtree"
+                  />
+                </motion.div>
+              );
+              
+              
+              console.log("✅ Rendering CircularGallery with items:", projectItems);
+              console.log("📊 CircularGallery props:", {
+                itemsCount: projectItems.length,
+                bend: 3,
+                textColor: "#93c5fd",
+                borderRadius: 0.05,
+                scrollEase: 0.02,
+                key: galleryKey
+              });
+              
+              try {
+                return (
+                  <CircularGallery
+                    key={galleryKey} // Force remount when images are ready
+                    items={projectItems}
+                    bend={3}
+                    textColor="#93c5fd"
+                    borderRadius={0.05}
+                    scrollEase={0.02}
+                    onSelect={handleProjectSelect}
+                  />
+                );
+              } catch (error) {
+                console.error("❌ CircularGallery error:", error);
+                console.error("Error stack:", error.stack);
+                return (
+                  <div className="text-red-400 text-center">
+                    <p>Error loading gallery</p>
+                    <p className="text-sm mt-2">Check console for details</p>
+                  </div>
+                );
+              }
+            })()}
           </div>
         </div>
 
@@ -369,92 +445,105 @@ export default function HomePage() {
           </Button>
         </div>
 
-        {/* 🪟 Transparent Overlay Modal */}
+        {/* 🪟 Modal */}
         {selected && (
           <motion.div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-50 transition-all duration-300 p-4"
+            onClick={closeModal}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center z-50"
-            onClick={() => setSelected(null)}
+            transition={{ duration: 0.3 }}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
               className="bg-black/60 border border-blue-300/30 rounded-2xl shadow-lg p-8 max-w-5xl w-[90%] flex flex-col md:flex-row gap-8 relative"
               onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.8, opacity: 0, y: 50 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.8, opacity: 0, y: 50 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
             >
-              <img
+              <motion.img
                 src={selected.image}
                 alt={selected.name}
                 className="w-full md:w-1/2 rounded-lg object-cover"
                 loading="lazy"
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
               />
-              <div className="flex-1 text-gray-200 space-y-4">
+              <motion.div 
+                className="flex-1 text-gray-200 space-y-4"
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
                 <h3 className="text-2xl font-semibold text-blue-300">
                   {selected.name}
                 </h3>
                 <p className="text-gray-300">{selected.description}</p>
                 <div className="flex flex-wrap gap-2 mt-3">
-                  {selected.tech.map((t) => (
-                    <span
+                  {selected.tech.map((t, i) => (
+                    <motion.span
                       key={t}
                       className="px-3 py-1 bg-blue-300/20 border border-blue-300/40 text-blue-200 rounded-full text-sm"
+                      initial={{ opacity: 0, scale: 0 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3, delay: 0.4 + i * 0.05 }}
                     >
                       {t}
-                    </span>
+                    </motion.span>
                   ))}
                 </div>
-                <a
+                <motion.a
                   href={selected.link}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-block mt-6 text-blue-300 underline hover:text-blue-400"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.5 }}
                 >
                   Visit Project →
-                </a>
-              </div>
+                </motion.a>
+              </motion.div>
               <button
-                className="absolute top-4 right-4 text-gray-400 hover:text-blue-300"
-                onClick={() => setSelected(null)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-blue-300 text-2xl"
+                onClick={closeModal}
               >
                 ✕
               </button>
             </motion.div>
           </motion.div>
         )}
-      </motion.section>
+      </section>
 
       {/* ⚙️ Skills Section */}
-      <motion.section
+      <section
+        ref={skillsRef}
         id="skills"
-        variants={fadeInVariants}
-        className="relative py-24 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center overflow-hidden"
+        className="relative py-24 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center overflow-hidden min-h-screen"
       >
-        <div className="absolute top-0 left-0 w-full flex justify-center items-center -z-10 pointer-events-none">
+        <div className="absolute top-0 left-0 w-full flex justify-center items-center pointer-events-none">
           <div className="absolute inset-0 w-full flex justify-center items-center -z-10 pointer-events-none">
             <div className="w-full h-[200px] sm:h-[250px] md:h-[300px]">
-              <Suspense fallback={<div className="h-full bg-gray-800/20 rounded" />}>
-                <LazyThreads
-                  color={[1, 1, 1]}
-                  amplitude={1.0}
-                  distance={0}
-                  enableMouseInteraction={false}
-                />
-              </Suspense>
+              <Threads
+                color={[1, 1, 1]}
+                amplitude={1.0}
+                distance={0}
+                enableMouseInteraction={false}
+              />
             </div>
           </div>
 
-          <h2 className="relative text-3xl md:text-4xl font-bold text-blue-300 text-center drop-shadow-[0_0_10px_#3b82f6]">
+          <h2 className="relative text-3xl md:text-4xl font-bold text-blue-300 text-center drop-shadow-[0_0_10px_#3b82f6] mb-12">
             Skills & Tools
           </h2>
         </div>
 
-        {/* 🖼️ DomeGallery below, unaffected by Threads */}
         <div className="relative w-full h-[70vh] sm:h-[80vh] md:h-[100vh] flex justify-center items-center px-4 md:px-10 z-0">
-          <Suspense fallback={<LoadingFallback />}>
-            <LazyDomeGallery
+          {skillsInView ? (
+            <DomeGallery
               images={shuffledImages}
               fit={0.5}
               padFactor={0.2}
@@ -462,14 +551,15 @@ export default function HomePage() {
               imageBorderRadius="30px"
               overlayBlurColor="#000000"
             />
-          </Suspense>
+          ) : (
+            <div className="text-gray-400">Loading skills...</div>
+          )}
         </div>
-      </motion.section>
+      </section>
 
       {/* 📬 Contact Section */}
-      <motion.section 
+      <section 
         id="contact"
-        variants={fadeInVariants}
         className="py-24 px-6 md:px-20 text-center bg-black/40 backdrop-blur-sm"
       >
         <h2 className="text-3xl md:text-4xl font-bold text-blue-300 mb-8 drop-shadow-[0_0_10px_#3b82f6]">
@@ -479,46 +569,50 @@ export default function HomePage() {
           Let's collaborate or just have a friendly chat! I'm always open to new opportunities and ideas.
         </p>
         <div className="flex justify-center space-x-10 text-blue-300">
-          <a href="mailto:anshu.yadav5709@gmail.com" className="hover:text-white transition">
+          <a 
+            href="mailto:anshu.yadav5709@gmail.com" 
+            className="hover:text-white transition hover:scale-110"
+          >
             <Mail size={30} />
           </a>
-          <a href="https://github.com/ShubhamY90" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">
+          <a 
+            href="https://github.com/ShubhamY90" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="hover:text-white transition hover:scale-110"
+          >
             <Github size={30} />
           </a>
-          <a href="https://www.linkedin.com/in/shubham-yadav-734008284/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">
+          <a 
+            href="https://www.linkedin.com/in/shubham-yadav-734008284/" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="hover:text-white transition hover:scale-110"
+          >
             <Linkedin size={30} />
           </a>
         </div>
-      </motion.section>
+      </section>
 
       {/* 🦋 Footer */}
-      <motion.footer
-        variants={fadeInVariants}
-        className="py-6 text-center border-t border-blue-300/20 text-gray-300 text-sm md:text-base bg-black/30 backdrop-blur-sm"
-      >
+      <footer className="py-6 text-center border-t border-blue-300/20 text-gray-300 text-sm md:text-base bg-black/30 backdrop-blur-sm">
         © {new Date().getFullYear()} Shubham Yadav — Built with 💙 using React & Tailwind.
-      </motion.footer>
+      </footer>
       
-      {/* 🌀 Floating Circular Text (bottom-right corner) */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 0.8, scale: 1 }}
-        transition={{ delay: 1 }}
-        className="fixed bottom-6 right-6 z-[9999] w-[90px] h-[90px] opacity-80 hover:opacity-100 transition-all duration-300"
-      >
+      {/* 🌀 Floating Circular Text */}
+      <div className="fixed bottom-6 right-6 z-[9999] w-[90px] h-[90px] opacity-80 hover:opacity-100 transition-all duration-300">
         <CircularText
           text="SHUBHAM YADAV "
           spinDuration={20}
           className="w-full h-full text-[2px]"
           onHover="goBonkers"
         />
-      </motion.div>
+      </div>
 
       <style>
         {`
           html, body {
             overflow-x: hidden;
-            scroll-behavior: smooth;
           }
           canvas {
             display: block;
@@ -528,7 +622,6 @@ export default function HomePage() {
             margin: 0 auto;
           }
 
-          /* 📱 Responsive Tweaks */
           @media (max-width: 1024px) {
             h1 { font-size: 3rem; }
             h2 { font-size: 2rem; }
@@ -549,18 +642,8 @@ export default function HomePage() {
             #projects .h-[600px] { height: 400px !important; }
             #skills div[style] { height: 70vh !important; }
           }
-
-          /* Performance optimizations */
-          * {
-            box-sizing: border-box;
-          }
-          
-          img {
-            max-width: 100%;
-            height: auto;
-          }
         `}
       </style>
-    </motion.div>
+    </div>
   );
 }
