@@ -124,7 +124,12 @@ export default function DomeGallery({
   openedImageHeight = '400px',
   imageBorderRadius = '30px',
   openedImageBorderRadius = '30px',
-  grayscale = true
+  grayscale = true,
+  // ===== SPEED CONTROL =====
+  // Adjust this value to change rotation speed (degrees per second)
+  // Positive values rotate clockwise, negative values rotate counter-clockwise
+  rotationSpeed = 10 // degrees per second
+  // ===== END SPEED CONTROL =====
 }) {
   const rootRef = useRef(null);
   const mainRef = useRef(null);
@@ -147,6 +152,11 @@ export default function DomeGallery({
   const openingRef = useRef(false);
   const openStartedAtRef = useRef(0);
   const lastDragEndAt = useRef(0);
+
+  // ===== AUTO ROTATION =====
+  const autoRotationRef = useRef(null);
+  const lastRotationTimeRef = useRef(null);
+  // ===== END AUTO ROTATION =====
 
   const scrollLockedRef = useRef(false);
   const lockScroll = useCallback(() => {
@@ -171,6 +181,43 @@ export default function DomeGallery({
   };
 
   const lockedRadiusRef = useRef(null);
+
+  // ===== AUTO ROTATION LOGIC =====
+  const startAutoRotation = useCallback(() => {
+    if (autoRotationRef.current) return;
+    
+    const rotateStep = () => {
+      const now = performance.now();
+      const lastTime = lastRotationTimeRef.current || now;
+      const deltaTime = (now - lastTime) / 1000; // Convert to seconds
+      lastRotationTimeRef.current = now;
+
+      if (!draggingRef.current && !focusedElRef.current && rotationSpeed !== 0) {
+        const deltaDegrees = rotationSpeed * deltaTime;
+        rotationRef.current.y = wrapAngleSigned(rotationRef.current.y + deltaDegrees);
+        applyTransform(rotationRef.current.x, rotationRef.current.y);
+      }
+
+      autoRotationRef.current = requestAnimationFrame(rotateStep);
+    };
+
+    lastRotationTimeRef.current = performance.now();
+    autoRotationRef.current = requestAnimationFrame(rotateStep);
+  }, [rotationSpeed]);
+
+  const stopAutoRotation = useCallback(() => {
+    if (autoRotationRef.current) {
+      cancelAnimationFrame(autoRotationRef.current);
+      autoRotationRef.current = null;
+    }
+    lastRotationTimeRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    startAutoRotation();
+    return () => stopAutoRotation();
+  }, [startAutoRotation, stopAutoRotation]);
+  // ===== END AUTO ROTATION LOGIC =====
 
   useEffect(() => {
     const root = rootRef.current;
