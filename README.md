@@ -1,4 +1,4 @@
-🧑‍💻 Shubham Yadav – Portfolio
+SHUBHAM YADAV
 
 Welcome to my personal portfolio website!
 This is where I showcase my projects, skills, and experience as a developer — built with modern technologies, smooth animations, and a clean futuristic design.
